@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guided Tour | Cholo Jaai</title>
+  <link rel="stylesheet" href="index.css?v=2.0">
+  <style>
+    .wizard-container { max-width: 800px; margin: 0 auto; }
+    .step { display: none; animation: fadeIn 0.4s ease; }
+    .step.active { display: block; }
+    
+    /* Premium Progress Bar */
+    .progress-bar-premium {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      margin-bottom: 48px;
+    }
+    .progress-bar-premium::before {
+      content: '';
+      position: absolute;
+      top: 20px; left: 0; right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 0;
+    }
+    .p-step {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100px;
+    }
+    .step-icon {
+      width: 40px; height: 40px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: var(--text-muted);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .step-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      transition: all 0.3s;
+    }
+    .p-step.active .step-icon {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #000;
+      box-shadow: 0 0 20px rgba(0, 230, 118, 0.4);
+    }
+    .p-step.active .step-label {
+      color: var(--primary);
+    }
+    .p-step.completed .step-icon {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    
+    .guide-card { border: 2px solid var(--border); border-radius: var(--radius-md); padding: 16px; display: flex; gap: 16px; align-items: center; cursor: pointer; transition: all 0.2s; background: var(--surface); margin-bottom: 12px; }
+    .guide-card:hover { border-color: var(--primary-hover); transform: translateY(-2px); }
+    .guide-card.active { border-color: var(--primary); background: rgba(16,185,129,0.05); box-shadow: 0 0 0 4px rgba(16,185,129,0.1); }
+    .guide-avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--border); overflow: hidden; }
+  </style>
+</head>
+<body class="animate-fade-up">
+  <!-- Global Mesh Background -->
+  <div class="bg-mesh">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+  </div>
+
+  <main class="container" style="padding-top: 120px; padding-bottom: 60px;">
+    <div class="wizard-container">
+      
+      <div align="center" class="mb-8">
+        <h1 class="h2 mb-2">Book a Local Guide</h1>
+        <p class="text-muted">Explore like a true local.</p>
+      </div>
+
+      <div class="progress-bar-premium" id="progressBar">
+        <div class="p-step active">
+          <div class="step-icon">1</div>
+          <div class="step-label">Trip</div>
+        </div>
+        <div class="p-step">
+          <div class="step-icon">2</div>
+          <div class="step-label">Guide</div>
+        </div>
+        <div class="p-step">
+          <div class="step-icon">3</div>
+          <div class="step-label">Contact</div>
+        </div>
+      </div>
+
+      <div class="card p-6">
+        <!-- Step 1 -->
+        <div class="step active" data-step="1">
+          <h2 class="h3 mb-4">Trip Details</h2>
+          <div class="mb-4">
+            <label>Destination</label>
+            <select class="input-box" id="dest" required>
+              <option value="Sajek">Sajek Valley</option>
+              <option value="Bandarban">Bandarban</option>
+              <option value="Sundarbans">Sundarbans</option>
+            </select>
+          </div>
+          <div class="form-grid mb-4">
+            <div>
+              <label>Arrival Date</label>
+              <input type="date" class="input-box" id="startDate" required>
+            </div>
+            <div>
+              <label>Language</label>
+              <select class="input-box" id="lang">
+                <option>Bengali</option>
+                <option>English</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step" data-step="2">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="h3">Choose Your Guide</h2>
+            <span class="badge">10% Off Random</span>
+          </div>
+          
+          <div id="dynamicGuidesContainer">
+            <div class="guide-card active" data-val="Random" onclick="selectGuide(this)">
+              <div class="guide-avatar flex items-center justify-center h3 m-0">🎲</div>
+              <div>
+                <div style="font-weight: 600;">Assign Randomly</div>
+                <div class="text-muted small">We'll pick the best available guide for you and apply a 10% discount.</div>
+              </div>
+            </div>
+            <div id="loadingGuidesText" class="text-muted text-center py-4">Loading guides from database...</div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step" data-step="3">
+          <h2 class="h3 mb-4">Contact Detail</h2>
+          <div class="mb-4">
+            <label>Name</label>
+            <input type="text" class="input-box" id="cname" required>
+          </div>
+          <div class="mb-6">
+            <label>Phone Number (WhatsApp preferred)</label>
+            <input type="tel" class="input-box" id="cphone" placeholder="+8801XXXXXXXXX" value="+880" maxlength="14" oninput="if(!this.value.startsWith('+880')) this.value = '+880'; this.value = '+880' + this.value.slice(4).replace(/[^0-9]/g, '');" required>
+            <small id="phoneError" style="color: red; display: none; margin-top: 4px;">Invalid number</small>
+          </div>
+        </div>
+
+        <div class="flex justify-between mt-6 pt-6" style="border-top:1px solid var(--border);">
+          <button class="btn btn-secondary" id="btnPrev" style="display:none;" onclick="goPrev()">Back</button>
+          <div style="flex:1;"></div>
+          <button class="btn btn-primary" id="btnNext" onclick="goNext()">Continue</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="common.js?v=2.0"></script>
+  <script>
+    let currentStep = 1;
+    const maxSteps = 3;
+
+    function selectGuide(element) {
+      document.querySelectorAll('.guide-card').forEach(x => x.classList.remove('active'));
+      element.classList.add('active');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Date Restriction Logic
+      const today = new Date().toISOString().split('T')[0];
+      const startInput = document.getElementById('startDate');
+      if (startInput) startInput.setAttribute('min', today);
+
+      try {
+        const [usersRes, statusRes] = await Promise.all([
+          APP.API.fetch('/api/data/users'),
+          APP.API.fetch('/api/data/guide_status')
+        ]);
+        
+        const guides = usersRes.data.filter(u => u.type === 'Guide');
+        const statuses = statusRes.success ? statusRes.data : [];
+        
+        const container = document.getElementById('dynamicGuidesContainer');
+        const loadingText = document.getElementById('loadingGuidesText');
+        if (loadingText) loadingText.remove();
+        
+        if (guides.length === 0) {
+          // Mock data if no real guides exist
+          container.innerHTML += `
+            <div class="guide-card" data-val="Rahman" onclick="selectGuide(this)">
+              <div class="guide-avatar flex items-center justify-center m-0" style="background:#3b82f6; color:white;">R</div>
+              <div>
+                <div style="font-weight: 600;">Rahman M.</div>
+                <div class="text-muted small">⭐ 4.9 (120 trips) • Wildlife Expert (Mock)</div>
+              </div>
+            </div>
+          `;
+        } else {
+          guides.forEach(g => {
+            const myStatus = statuses.find(s => s.email === g.email);
+            const isBusy = myStatus && myStatus.status === 'BUSY';
+            
+            if (isBusy) return; // Skip busy guides
+ 
+            const card = document.createElement('div');
+            card.className = 'guide-card';
+            card.dataset.val = g.name;
+            card.setAttribute('onclick', 'selectGuide(this)');
+            card.innerHTML = `
+              <div class="guide-avatar flex items-center justify-center m-0" style="background:var(--secondary); color:white;">${g.name[0].toUpperCase()}</div>
+              <div style="flex:1;">
+                <div style="font-weight: 600;">${g.name}</div>
+                <div class="text-muted small">⭐ Local Expert • Joined ${new Date(g.created_at).toLocaleDateString()}</div>
+              </div>
+              <span class="badge" style="background:rgba(16,185,129,0.1); color:var(--primary); font-size:0.7rem;">Available</span>
+            `;
+            container.appendChild(card);
+          });
+        }
+
+        // Auto-fill Contact Info
+        const userStr = localStorage.getItem('CJ_USER');
+        if (userStr) {
+          try {
+            const userData = JSON.parse(userStr);
+            const nameInput = document.getElementById('cname');
+            const phoneInput = document.getElementById('cphone');
+            
+            if (nameInput) nameInput.value = userData.name || '';
+            if (phoneInput) phoneInput.value = userData.phone || '+880';
+            
+            APP.API.fetch('/api/data/profiles').then(res => {
+              if (res.success) {
+                const profile = res.data.find(p => p.email === userData.email);
+                if (profile) {
+                  if (nameInput) nameInput.value = `${profile.firstName} ${profile.lastName}`.trim();
+                  if (phoneInput) phoneInput.value = profile.phone || '+880';
+                }
+              }
+            });
+          } catch(e) {}
+        }
+      } catch (err) {
+        console.error('Error fetching dynamic guides:', err);
+      }
+    });
+
+    function showStep(s) {
+      const steps = document.querySelectorAll('.step');
+      const btnNext = document.getElementById('btnNext');
+      const btnPrev = document.getElementById('btnPrev');
+
+      steps.forEach((el, index) => {
+        el.classList.toggle('active', s === index + 1);
+      });
+      
+      document.querySelectorAll('.p-step').forEach((p, index) => {
+        p.classList.toggle('active', index + 1 === s);
+        p.classList.toggle('completed', index + 1 < s);
+      });
+
+      btnPrev.style.display = s > 1 ? 'block' : 'none';
+      btnNext.textContent = s === maxSteps ? 'Confirm Request' : 'Continue';
+    }
+
+    async function goNext() {
+      // Step Validation
+      if (currentStep === 1) {
+        const dest = document.getElementById('dest').value;
+        const start = document.getElementById('startDate').value;
+        if (!dest || !start) {
+          alert('Please select a destination and arrival date');
+          return;
+        }
+      }
+
+      if (currentStep < maxSteps) {
+        currentStep++;
+        showStep(currentStep);
+      } else {
+        // Validation (Step 3)
+        const nameInput = document.getElementById('cname');
+        const phoneInput = document.getElementById('cphone');
+        const phoneError = document.getElementById('phoneError');
+        
+        if (!nameInput.value || !phoneInput.value) {
+          alert('Please fill your name and phone number');
+          return;
+        }
+
+        const phoneRegex = /^\+8801\d{9}$/;
+        if (!phoneRegex.test(phoneInput.value)) {
+          phoneError.style.display = 'block';
+          return;
+        } else {
+          phoneError.style.display = 'none';
+        }
+
+        // Collect & Submit
+        const activeCard = document.querySelector('.guide-card.active');
+        const guideVal = activeCard ? activeCard.dataset.val : 'Random';
+        
+        let userEmail = '';
+        const userStr = localStorage.getItem('CJ_USER');
+        if (userStr) {
+          try { userEmail = JSON.parse(userStr).email; } catch(e){}
+        }
+
+        const payload = {
+          destination: document.getElementById('dest').value,
+          language: document.getElementById('lang').value,
+          guide: guideVal,
+          name: document.getElementById('cname').value,
+          phone: document.getElementById('cphone').value,
+          email: userEmail,
+          startDate: document.getElementById('startDate').value,
+          status: 'Pending',
+          payment: 'Unpaid'
+        };
+        const res = await APP.API.save('guidedTours', payload);
+        if (res.success) {
+          APP.showSuccessTick("Redirecting to your dashboard...", () => {
+            window.location.href = 'dashboard.html?tab=bookings';
+          });
+        } else {
+          alert(res.message || 'Error saving booking.');
+        }
+      }
+    }
+
+    function goPrev() {
+      if (currentStep > 1) {
+        currentStep--;
+        showStep(currentStep);
+      }
+    }
+  </script>
+</body>
+</html>

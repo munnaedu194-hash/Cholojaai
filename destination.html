@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Destination | Cholo Jaai</title>
+  <link rel="stylesheet" href="index.css?v=2.0">
+  <style>
+    .hero-img {
+      width: 100%;
+      height: 400px;
+      object-fit: cover;
+      border-radius: var(--radius-lg);
+    }
+    input[type="number"], input[type="date"] {
+      color-scheme: dark;
+    }
+  </style>
+</head>
+<body class="animate-fade-up">
+  <div class="bg-mesh">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+  </div>
+
+  <main class="container" style="padding-top: 120px; padding-bottom: 60px;">
+    <div id="content" class="grid" style="grid-template-columns: 2fr 1fr; gap: 32px;">
+      <p>Loading destination details...</p>
+    </div>
+  </main>
+
+  <script src="common.js?v=2.0"></script>
+  <script>
+    const DB_DEST = {
+      "sajek": { name: "Sajek Valley", cover: "pic/sajek.jpg", price: 7500, duration: "3 Days", desc: "The Queen of Hills." },
+      "bandarban": { name: "Bandarban", cover: "pic/bandarban.jpg", price: 6500, duration: "2 Days", desc: "Majestic waterfalls." },
+      "sundarbans": { name: "Sundarbans", cover: "pic/sundarbans.jpg", price: 12500, duration: "3 Days", desc: "Mangrove forest safari." },
+      "saint-martin": { name: "Saint Martin", cover: "pic/saint-martin.jpg", price: 9800, duration: "3 Days", desc: "Coral island paradise." }
+    };
+
+    const slug = new URLSearchParams(window.location.search).get('slug') || 'sajek';
+    const dest = DB_DEST[slug];
+
+    if (!dest) {
+      document.getElementById('content').innerHTML = `<h2>Not found. <a href="index.html">Go Back</a></h2>`;
+    } else {
+      document.getElementById('content').innerHTML = `
+        <div>
+          <img src="${dest.cover}" class="hero-img mb-6 shadow-md" alt="${dest.name}">
+          <h1 class="h1 mb-2">${dest.name}</h1>
+          <p class="text-muted mb-4" style="font-size:1.1rem;">${dest.desc}</p>
+          <div class="flex gap-4">
+            <span class="badge" style="background:#f1f5f9; color:#0f172a;">${dest.duration}</span>
+          </div>
+        </div>
+        <div>
+          <div class="card p-6 sticky" style="top: 100px;">
+            <div class="flex justify-between items-center mb-6">
+              <span class="text-muted">Starting from</span>
+              <span class="h3 text-primary">৳ ${dest.price}</span>
+            </div>
+            <form id="bookForm">
+              <div class="mb-6">
+                <label>Date</label>
+                <input type="date" class="input-box" id="bookDate" required>
+              </div>
+              <div class="mb-6">
+                <label>Persons</label>
+                <input type="number" id="personsInput" class="input-box" value="1" min="1" required>
+              </div>
+              <button class="btn btn-primary w-full">Continue Booking</button>
+            </form>
+          </div>
+        </div>
+      `;
+
+      const today = new Date().toISOString().split('T')[0];
+      const dateInp = document.getElementById('bookDate');
+      if (dateInp) dateInp.setAttribute('min', today);
+
+      document.getElementById('bookForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const bookingData = {
+          destination: dest.name,
+          date: document.getElementById('bookDate').value,
+          persons: document.getElementById('personsInput').value
+        };
+        sessionStorage.setItem('CJ_PENDING_BOOKING', JSON.stringify(bookingData));
+        window.location.href = 'booking-details.html';
+      });
+    }
+  </script>
+</body>
+</html>

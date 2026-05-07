@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Tour Planner | Cholo Jaai</title>
+  <link rel="stylesheet" href="index.css?v=2.0">
+  <style>
+    .wizard-container { max-width: 800px; margin: 0 auto; }
+    .step { display: none; animation: fadeIn 0.4s ease; }
+    .step.active { display: block; }
+    
+    /* Premium Progress Bar */
+    .progress-bar-premium {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      margin-bottom: 48px;
+    }
+    .progress-bar-premium::before {
+      content: '';
+      position: absolute;
+      top: 20px; left: 0; right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 0;
+    }
+    .p-step {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      width: 100px;
+    }
+    .step-icon {
+      width: 40px; height: 40px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: var(--text-muted);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .p-step.active .step-icon {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #000;
+      box-shadow: 0 0 20px rgba(0, 230, 118, 0.4);
+    }
+    .step-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      transition: all 0.3s;
+    }
+    .p-step.active .step-label { color: var(--primary); }
+    .p-step.completed .step-icon { border-color: var(--primary); color: var(--primary); }
+    
+    .choice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .choice-card { border: 2px solid var(--border); border-radius: var(--radius-md); padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--surface); }
+    .choice-card:hover { border-color: var(--primary-hover); transform: translateY(-2px); }
+    .choice-card.active { border-color: var(--primary); background: rgba(0, 230, 118, 0.05); }
+  </style>
+</head>
+<body class="animate-fade-up">
+  <div class="bg-mesh">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+  </div>
+
+  <main class="container" style="padding-top: 120px; padding-bottom: 60px;">
+    <div class="wizard-container">
+      
+      <div align="center" class="mb-8">
+        <h1 class="h2 mb-2">Build Your Dream Trip</h1>
+        <p class="text-muted">In 3 simple steps.</p>
+      </div>
+
+      <div class="progress-bar-premium" id="progressBar">
+        <div class="p-step active" data-step="1">
+          <div class="step-icon">1</div>
+          <div class="step-label">Plan</div>
+        </div>
+        <div class="p-step" data-step="2">
+          <div class="step-icon">2</div>
+          <div class="step-label">Budget</div>
+        </div>
+        <div class="p-step" data-step="3">
+          <div class="step-icon">3</div>
+          <div class="step-label">Style</div>
+        </div>
+      </div>
+
+      <div class="card p-6">
+        <!-- Step 1 -->
+        <div class="step active" data-step="1">
+          <h2 class="h3 mb-4">Where and when?</h2>
+          <div class="mb-4">
+            <label>Destination</label>
+            <select class="input-box" id="dest" required>
+              <option value="Sajek">Sajek Valley</option>
+              <option value="Bandarban">Bandarban</option>
+              <option value="Sylhet">Sylhet</option>
+            </select>
+          </div>
+          <div class="form-grid mb-4">
+            <div>
+              <label>Start Date</label>
+              <input type="date" class="input-box" id="startDate" required style="color-scheme: dark;">
+            </div>
+            <div>
+              <label>End Date</label>
+              <input type="date" class="input-box" id="endDate" required style="color-scheme: dark;">
+            </div>
+          </div>
+          <div class="mb-6">
+            <label>Number of Travelers</label>
+            <input type="number" class="input-box" id="travelers" value="2" min="1">
+          </div>
+          <small id="step1Error" style="color: #ff3d00; display: none; margin-bottom: 16px; font-weight: 600;"></small>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step" data-step="2">
+          <h2 class="h3 mb-4">What's your budget style?</h2>
+          <div class="choice-grid">
+            <div class="choice-card budget-choice active" data-val="Economy">
+              <span class="h2 d-block">🛖</span>
+              <div>Economy</div>
+              <small class="text-muted">Standard Hostels/Buses</small>
+            </div>
+            <div class="choice-card budget-choice" data-val="Comfort">
+              <span class="h2 d-block">🏨</span>
+              <div>Comfort</div>
+              <small class="text-muted">3-Star Hotels/Cars</small>
+            </div>
+            <div class="choice-card budget-choice" data-val="Luxury">
+              <span class="h2 d-block">🏰</span>
+              <div>Luxury</div>
+              <small class="text-muted">Resorts/Flights</small>
+            </div>
+          </div>
+          <small id="step2Error" style="color: #ff3d00; display: none; margin-top: 12px; font-weight: 600;"></small>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step" data-step="3">
+          <h2 class="h3 mb-4">Any special interests?</h2>
+          <div class="choice-grid" id="interestsGrid">
+            <div class="choice-card interest-choice" data-val="Adventure">⛰️ Adventure</div>
+            <div class="choice-card interest-choice" data-val="Relaxation">💆 Relaxation</div>
+            <div class="choice-card interest-choice" data-val="Photography">📸 Photography</div>
+            <div class="choice-card interest-choice" data-val="Food">🥘 Local Food</div>
+            <div class="choice-card interest-choice" data-val="Culture">🏛️ Culture</div>
+            <div class="choice-card interest-choice" data-val="Wildlife">🐅 Wildlife</div>
+          </div>
+          <small id="step3Error" style="color: #ff3d00; display: none; margin-top: 12px; font-weight: 600;"></small>
+        </div>
+
+        <div class="flex justify-between mt-6 pt-6" style="border-top:1px solid var(--border);">
+          <button class="btn btn-secondary" id="btnPrev" style="display:none;">Back</button>
+          <div style="flex:1;"></div>
+          <button class="btn btn-primary" id="btnNext">Continue</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="common.js?v=2.0"></script>
+  <script>
+    let currentStep = 1;
+    const maxSteps = 3;
+    const steps = document.querySelectorAll('.step');
+    const btnNext = document.getElementById('btnNext');
+    const btnPrev = document.getElementById('btnPrev');
+
+    document.querySelectorAll('.budget-choice').forEach(c => c.addEventListener('click', () => {
+      document.querySelectorAll('.budget-choice').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+    }));
+    document.querySelectorAll('.interest-choice').forEach(c => c.addEventListener('click', () => {
+      c.classList.toggle('active');
+    }));
+
+    function showStep(s) {
+      steps.forEach((el, index) => el.classList.toggle('active', s === index + 1));
+      document.querySelectorAll('.p-step').forEach((p, index) => {
+        p.classList.toggle('active', index + 1 === s);
+        p.classList.toggle('completed', index + 1 < s);
+      });
+      btnPrev.style.display = s > 1 ? 'block' : 'none';
+      btnNext.textContent = s === maxSteps ? 'Plan My Trip' : 'Continue';
+    }
+
+    btnNext.addEventListener('click', async () => {
+      if (currentStep === 1) {
+        const start = document.getElementById('startDate').value;
+        const end = document.getElementById('endDate').value;
+        const err = document.getElementById('step1Error');
+        const today = new Date().toISOString().split('T')[0];
+        if (!start || !end) {
+          err.textContent = "⚠️ Please fill all fields.";
+          err.style.display = 'block';
+          return;
+        }
+        if (start < today) {
+          err.textContent = "⚠️ Start date cannot be in the past.";
+          err.style.display = 'block';
+          return;
+        }
+        if (end < start) {
+          err.textContent = "⚠️ End date must be after start date.";
+          err.style.display = 'block';
+          return;
+        }
+        err.style.display = 'none';
+      }
+      if (currentStep === 2) {
+        if (!document.querySelector('.budget-choice.active')) {
+          document.getElementById('step2Error').textContent = "⚠️ Pick a style.";
+          document.getElementById('step2Error').style.display = 'block';
+          return;
+        }
+      }
+      if (currentStep === 3) {
+        if (document.querySelectorAll('.interest-choice.active').length === 0) {
+          document.getElementById('step3Error').textContent = "⚠️ Select one.";
+          document.getElementById('step3Error').style.display = 'block';
+          return;
+        }
+      }
+
+      if (currentStep < maxSteps) {
+        currentStep++;
+        showStep(currentStep);
+      } else {
+        const bookingData = {
+          destination: document.getElementById('dest').value,
+          date: `${document.getElementById('startDate').value} to ${document.getElementById('endDate').value}`,
+          persons: document.getElementById('travelers').value,
+          budget: document.querySelector('.budget-choice.active').dataset.val,
+          interests: Array.from(document.querySelectorAll('.interest-choice.active')).map(i => i.dataset.val)
+        };
+        sessionStorage.setItem('CJ_PENDING_BOOKING', JSON.stringify(bookingData));
+        window.location.href = 'booking-details.html';
+      }
+    });
+
+    btnPrev.addEventListener('click', () => {
+      if (currentStep > 1) {
+        currentStep--;
+        showStep(currentStep);
+      }
+    });
+
+    showStep(currentStep);
+
+    // Set minimum date to today
+    document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('startDate').setAttribute('min', today);
+      document.getElementById('endDate').setAttribute('min', today);
+      document.getElementById('startDate').addEventListener('change', function() {
+        document.getElementById('endDate').setAttribute('min', this.value || today);
+      });
+    });
+  </script>
+</body>
+</html>

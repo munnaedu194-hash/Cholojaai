@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guide Home | Cholo Jaai</title>
+  <link rel="stylesheet" href="index.css?v=2.0">
+  <style>
+    .hero-section {
+      min-height: 80vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      padding-top: 100px;
+    }
+    .status-toggle {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+    .status-toggle input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #334155;
+      transition: .4s; border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute; content: "";
+      height: 26px; width: 26px;
+      left: 4px; bottom: 4px;
+      background-color: white;
+      transition: .4s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--primary); }
+    input:checked + .slider:before { transform: translateX(26px); }
+  </style>
+</head>
+<body class="animate-fade-up">
+  <div class="bg-mesh">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+  </div>
+
+  <main>
+    <section class="hero-section">
+      <div class="container grid grid-cols-2 gap-8 items-center hero-content">
+        <div class="animate-fade-up">
+          <h1 class="h1 mb-6">Manage your <br> <span class="text-gradient">Tour Groups</span> <br> Seamlessly</h1>
+          <p class="text-muted mb-8" style="font-size: 1.2rem; max-width: 90%;">
+            Provide incredible experiences. Review your upcoming territory assignments, coordinate safely with travelers, and orchestrate perfect trips directly from your workspace.
+          </p>
+          <div class="flex gap-4 mb-12">
+            <a href="guide-requests.html" class="btn btn-primary">View Assignments</a>
+            <a href="dashboard.html" class="btn btn-secondary glass">Open Portal</a>
+          </div>
+        </div>
+        
+        <div class="animate-fade-up delay-200">
+          <div class="card p-6" style="background: rgba(20,27,45,0.7); backdrop-filter:blur(10px);">
+             <h3 class="h3 mb-4 text-center">My Guide Status</h3>
+             <div class="flex justify-between items-center border-b" style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 12px;">
+                <span class="text-muted">Current Availability:</span>
+                <div class="flex items-center gap-3">
+                   <span id="statusLabel" class="font-bold text-primary">FREE</span>
+                   <label class="status-toggle">
+                      <input type="checkbox" id="availabilityToggle" checked>
+                      <span class="slider"></span>
+                   </label>
+                </div>
+             </div>
+             <div class="flex justify-between border-b" style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 12px;">
+                <span class="text-muted">Account Status:</span>
+                <span class="text-primary font-bold">Active Expert</span>
+             </div>
+             <div class="flex justify-between border-b" style="border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 12px;">
+                <span class="text-muted">Pending Trips:</span>
+                <span class="text-main font-bold" id="pendingCount">Loading...</span>
+             </div>
+             <div class="text-center mt-6">
+                <a href="guide-requests.html" class="btn btn-secondary w-full">Go to Work</a>
+             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="common.js?v=2.0"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const userStr = localStorage.getItem('CJ_USER');
+      if (!userStr) {
+        window.location.replace('index.html');
+        return;
+      }
+      const user = JSON.parse(userStr);
+
+      if (user.type !== 'Guide') {
+        window.location.replace('index.html');
+        return;
+      }
+
+      // 1. Fetch current status
+      try {
+        const res = await APP.API.fetch('/api/data/guide_status');
+        if (res.success) {
+          const myStatus = res.data.find(s => s.email === user.email);
+          if (myStatus) {
+            const isFree = myStatus.status === 'FREE';
+            document.getElementById('availabilityToggle').checked = isFree;
+            updateStatusLabel(isFree);
+          }
+        }
+      } catch (e) { console.error('Status fetch error', e); }
+
+      // 2. Fetch pending trips count
+      try {
+        const res = await APP.API.fetch('/api/data/guidedTours');
+        if (res.success) {
+          const myTrips = res.data.filter(r => r.guide === user.name || r.guide === 'Random');
+          document.getElementById('pendingCount').textContent = `${myTrips.length} Active`;
+        }
+      } catch (e) { document.getElementById('pendingCount').textContent = 'Error'; }
+
+      // 3. Toggle Listener
+      document.getElementById('availabilityToggle').addEventListener('change', async (e) => {
+        const isFree = e.target.checked;
+        updateStatusLabel(isFree);
+        
+        const payload = {
+          email: user.email,
+          status: isFree ? 'FREE' : 'BUSY',
+          updatedAt: new Date().toISOString()
+        };
+        
+        await APP.API.save('guide_status', payload);
+      });
+
+      function updateStatusLabel(isFree) {
+        const label = document.getElementById('statusLabel');
+        label.textContent = isFree ? 'FREE' : 'BUSY';
+        label.className = isFree ? 'font-bold text-primary' : 'font-bold text-accent';
+      }
+    });
+  </script>
+</body>
+</html>

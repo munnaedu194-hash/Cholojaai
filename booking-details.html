@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Traveler Details | Cholo Jaai</title>
+  <link rel="stylesheet" href="index.css?v=2.0">
+  <style>
+    .details-container { max-width: 900px; margin: 0 auto; }
+    
+    /* Labeled Traveler Badge Grid */
+    .traveler-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+      justify-content: center;
+    }
+    .t-badge {
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+    .t-badge:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .t-badge.active {
+      background: var(--primary);
+      color: #000;
+      border-color: var(--primary);
+      box-shadow: 0 4px 20px rgba(0, 230, 118, 0.4);
+      transform: translateY(-4px);
+    }
+    .t-badge.completed::after {
+      content: '✓';
+      position: absolute;
+      top: -8px; right: -8px;
+      width: 20px; height: 20px;
+      background: var(--primary);
+      color: #000;
+      font-size: 0.75rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      border: 2px solid #000;
+    }
+
+    .t-panel { display: none; animation: slideUp 0.4s ease; }
+    .t-panel.active { display: block; }
+    
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .summary-bar {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 40px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      backdrop-filter: blur(10px);
+    }
+    .summary-item { text-align: center; }
+    .summary-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .summary-value { font-weight: 700; font-size: 1.1rem; }
+    
+    .info-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .info-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 4px;
+      background: linear-gradient(90deg, var(--primary), #00c853);
+    }
+  </style>
+</head>
+<body class="animate-fade-up">
+  <!-- Global Mesh Background -->
+  <div class="bg-mesh">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+  </div>
+
+  <main class="container" style="padding-top: 120px; padding-bottom: 80px;">
+    <div class="details-container">
+      
+      <div align="center" class="mb-12">
+        <h1 class="h1 mb-2">Final Step: Traveler Info</h1>
+        <p class="text-muted">Personalize your journey details.</p>
+      </div>
+
+      <!-- Trip Summary -->
+      <div class="summary-bar" id="tripSummary">
+        <div class="summary-item">
+          <div class="summary-label">Destination</div>
+          <div class="summary-value" id="sumDest">-</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Date</div>
+          <div class="summary-value" id="sumDate">-</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Persons</div>
+          <div class="summary-value" id="sumPersons">-</div>
+        </div>
+      </div>
+
+      <div class="traveler-grid" id="badgeGrid">
+        <!-- Badges injected here -->
+      </div>
+
+      <div class="info-card">
+        <form id="detailsForm">
+          <div class="mb-8" id="primaryContact">
+             <label style="font-weight: 700; color: var(--primary); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; display: block;">Primary Contact Email</label>
+             <div style="position: relative;">
+                <input type="email" class="input-box" id="cemail" placeholder="email@example.com" style="padding-left: 44px;" required>
+                <span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--primary); opacity: 0.6;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                </span>
+             </div>
+          </div>
+
+          <div id="panelsContainer" class="mb-10">
+            <!-- Traveler panels injected here -->
+          </div>
+
+          <div class="flex justify-between items-center pt-8">
+            <button type="button" class="btn btn-secondary" onclick="history.back()" style="padding: 12px 24px;">Back to Planner</button>
+            <button class="btn btn-primary" style="padding: 14px 40px; font-size: 1rem; box-shadow: 0 10px 25px rgba(0, 230, 118, 0.25);">Confirm & Complete Booking</button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="common.js?v=2.0"></script>
+  <script>
+    const bookingData = JSON.parse(sessionStorage.getItem('CJ_PENDING_BOOKING') || '{}');
+    const user = JSON.parse(localStorage.getItem('CJ_USER') || 'null');
+
+    // Auth guard
+    if (!user) {
+      alert('You must be signed in to complete a booking.');
+      window.location.href = 'register.html';
+    }
+
+    if (!bookingData.persons && !bookingData.travelers) {
+      alert("No booking data found. Redirecting...");
+      window.location.href = 'index.html';
+    }
+
+    // Normalize persons field
+    if (!bookingData.persons && bookingData.travelers) {
+      bookingData.persons = bookingData.travelers;
+    }
+
+    // Update Summary
+    document.getElementById('sumDest').textContent = bookingData.destination || 'Custom Tour';
+    document.getElementById('sumDate').textContent = bookingData.date || 'TBA';
+    document.getElementById('sumPersons').textContent = bookingData.persons;
+    document.getElementById('cemail').value = user.email || '';
+
+    window.switchTraveler = function(index) {
+      document.querySelectorAll('.t-badge').forEach((t, i) => {
+        t.classList.toggle('active', i === index);
+      });
+      document.querySelectorAll('.t-panel').forEach((p, i) => {
+        p.classList.toggle('active', i === index);
+      });
+    };
+
+    async function init() {
+      const count = parseInt(bookingData.persons);
+      const badgeGrid = document.getElementById('badgeGrid');
+      const panelsContainer = document.getElementById('panelsContainer');
+      
+      let profileData = null;
+      if (user.email) {
+        try {
+          const res = await APP.API.fetch('/api/data/profiles');
+          if (res.success) profileData = res.data.find(p => p.email === user.email);
+        } catch(e) {}
+      }
+
+      for (let i = 1; i <= count; i++) {
+        // Badge
+        badgeGrid.innerHTML += `
+          <div class="t-badge ${i === 1 ? 'active' : ''}" id="badge-${i}" onclick="switchTraveler(${i-1})">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.6;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            Traveler ${i}
+          </div>
+        `;
+
+        // Panel
+        let nameVal = '';
+        let phoneVal = '+880';
+        if (i === 1 && user.name) {
+          nameVal = profileData ? `${profileData.firstName} ${profileData.lastName}`.trim() : user.name;
+          phoneVal = profileData ? profileData.phone : (user.phone || '+880');
+        }
+
+        panelsContainer.innerHTML += `
+          <div class="t-panel ${i === 1 ? 'active' : ''}" style="padding-bottom: 20px;">
+            <div class="flex items-center gap-3 mb-6">
+              <div style="width: 32px; height: 32px; background: rgba(0,230,118,0.1); color: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.8rem;">${i}</div>
+              <h3 class="h3 m-0" style="font-size: 1.1rem;">Details for Traveler ${i}</h3>
+            </div>
+            <div class="form-grid">
+              <div>
+                <label class="block mb-2 text-muted small font-bold">FULL NAME</label>
+                <input type="text" class="input-box traveler-name" placeholder="John Doe" value="${nameVal}" required 
+                  oninput="document.getElementById('badge-${i}').classList.toggle('completed', this.value.length > 2)">
+              </div>
+              <div>
+                <label class="block mb-2 text-muted small font-bold">PHONE NUMBER</label>
+                <input type="tel" class="input-box traveler-phone" placeholder="+8801XXXXXXXXX" value="${phoneVal}" maxlength="14" 
+                  oninput="if(!this.value.startsWith('+880')) this.value = '+880'; this.value = '+880' + this.value.slice(4).replace(/[^0-9]/g, '');" required>
+              </div>
+            </div>
+            ${i < count ? `
+              <div class="mt-8 mb-4 flex justify-end">
+                <button type="button" class="btn btn-secondary" onclick="switchTraveler(${i})" style="padding: 10px 24px; font-size: 0.85rem; border-color: var(--primary); color: var(--primary); border-radius: 99px;">Next Traveler →</button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+    }
+
+    init();
+
+    document.getElementById('detailsForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const names = Array.from(document.querySelectorAll('.traveler-name')).map(i => i.value);
+      const phones = Array.from(document.querySelectorAll('.traveler-phone')).map(i => i.value);
+      const phoneRegex = /^\+8801\d{9}$/;
+
+      for (let [idx, p] of phones.entries()) {
+        if (!phoneRegex.test(p)) {
+          alert(`Please enter a valid phone number for Traveler ${idx + 1}.`);
+          switchTraveler(idx);
+          return;
+        }
+      }
+
+      const travelersData = names.map((n, i) => ({ name: n, phone: phones[i] }));
+      const payload = {
+        ...bookingData,
+        email: document.getElementById('cemail').value,
+        travelers: travelersData,
+        name: names[0],
+        mobile: phones[0],
+        status: 'Pending',
+        payment: 'Unpaid'
+      };
+
+      const res = await APP.API.save('bookings', payload);
+      if (res.success) {
+        sessionStorage.removeItem('CJ_PENDING_BOOKING');
+        APP.showSuccessTick("Booking confirmed! Redirecting to dashboard...", () => {
+          window.location.href = 'dashboard.html?tab=bookings';
+        });
+      } else {
+        alert(res.message);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cholo Jaai | Bangladesh's Premier Tour Platform</title>
+  <style>
+    /* ==========================================================================
+       INLINED DESIGN SYSTEM (FROM INDEX.CSS)
+       ========================================================================== */
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500&display=swap');
+    
+    :root {
+      --primary: #00e676; --primary-hover: #00c853; --secondary: #00b0ff; --accent: #ff3d00;
+      --bg-color: #0a0f18; --surface: #141b2d; --surface-glass: rgba(20, 27, 45, 0.6);
+      --text-main: #f8fafc; --text-muted: #94a3b8; --border: rgba(255, 255, 255, 0.08);
+      --radius-sm: 10px; --radius-md: 20px; --radius-lg: 30px;
+      --shadow-sm: 0 4px 10px rgba(0, 0, 0, 0.2); --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.4); --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      --hero-height: 90vh;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Outfit', sans-serif; background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { text-decoration: none; color: var(--primary); transition: all 0.3s ease; }
+    .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+    .flex { display: flex; } .items-center { align-items: center; } .justify-between { justify-content: space-between; } .justify-center { justify-content: center; } .gap-2 { gap: 8px; } .gap-6 { gap: 24px; } .flex-wrap { flex-wrap: wrap; }
+    .mb-6 { margin-bottom: 24px; } .mb-8 { margin-bottom: 32px; } .mb-10 { margin-bottom: 40px; }
+    .text-muted { color: var(--text-muted); } .text-gradient { background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent; display: inline-block; }
+    h1, h2, h3 { font-weight: 800; line-height: 1.2; }
+    .h1 { font-size: 3rem; letter-spacing: -1px; } .h2 { font-size: 2rem; } .h3 { font-size: 1.35rem; }
+
+    /* Navbar Styles */
+    .navbar { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; border-bottom: 1px solid var(--border); background: rgba(10, 15, 24, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 15px 0; }
+    .navbar .nav-links { display: flex; gap: 24px; align-items: center; }
+    .navbar .nav-links a { color: var(--text-main); font-weight: 500; font-family: 'Inter', sans-serif; font-size: 0.92rem; }
+    .navbar .nav-links a:hover { color: var(--primary); }
+
+    /* Button Styles */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 28px; font-weight: 700; border-radius: 99px; border: none; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-size: 1rem; }
+    .btn:hover { transform: scale(1.05); }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), #00a84e); color: #000; box-shadow: 0 8px 20px rgba(0, 230, 118, 0.4); }
+    .btn-secondary.glass { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.2); color: white; backdrop-filter: blur(10px); }
+
+    /* Landing Page Specific Styles */
+    .brand-hero { min-height: var(--hero-height); display: flex; align-items: center; justify-content: center; text-align: center; position: relative; padding: 120px 20px 60px; }
+    .hero-glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 40px; padding: 80px 40px; max-width: 1000px; z-index: 10; box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.6); animation: float 6s ease-in-out infinite; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+    .brand-tag { display: inline-block; padding: 8px 24px; background: rgba(0, 230, 118, 0.12); color: var(--primary); border-radius: 99px; font-weight: 800; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2.5px; margin-bottom: 32px; border: 1px solid rgba(0, 230, 118, 0.3); }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 100px; }
+    .feature-card { background: rgba(255, 255, 255, 0.03); padding: 48px; border-radius: 32px; border: 1px solid var(--border); transition: all 0.4s; text-align: left; backdrop-filter: blur(10px); }
+    .feature-card:hover { transform: translateY(-12px); border-color: var(--primary); background: rgba(255, 255, 255, 0.06); }
+    .feature-icon { width: 64px; height: 64px; background: rgba(0, 230, 118, 0.1); color: var(--primary); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 28px; font-size: 1.8rem; border: 1px solid rgba(0, 230, 118, 0.2); }
+    .stat-row { display: flex; justify-content: space-around; margin: 120px 0; padding: 80px 40px; background: rgba(255,255,255,0.03); border-radius: 48px; border: 1px solid var(--border); flex-wrap: wrap; gap: 40px; }
+    .stat-item h4 { font-size: 4rem; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 8px;}
+    .cta-banner { background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 100px 40px; border-radius: 48px; text-align: center; color: #0f172a; margin: 120px 0 60px; box-shadow: 0 30px 60px rgba(0, 230, 118, 0.2); }
+
+    /* Background Orbs */
+    .bg-mesh { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: var(--bg-color); overflow: hidden; }
+    .bg-orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.4; animation: floatOrb 25s infinite alternate ease-in-out; }
+    .bg-orb-1 { top: -20%; left: -10%; width: 50vw; height: 50vw; background: rgba(0, 230, 118, 0.25); }
+    .bg-orb-2 { bottom: -20%; right: -10%; width: 60vw; height: 60vw; background: rgba(0, 176, 255, 0.2); }
+    @keyframes floatOrb { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(-10%, -5%) scale(0.8); } }
+  </style>
+</head>
+<body>
+  <!-- Mesh Background -->
+  <div class="bg-mesh">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+  </div>
+
+  <!-- Inlined Navbar (For zero-dependency loading) -->
+  <nav class="navbar">
+    <div class="container flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2" style="z-index: 10;">
+        <span style="font-size: 1.4rem; font-weight: 800; color: var(--text-main); font-family: 'Outfit', sans-serif; letter-spacing: -0.5px;">
+          Cholo <span class="text-gradient">Jaai</span>
+        </span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="packages.html">Packages</a>
+        <a href="custom-tour.html">Custom Tour</a>
+        <a href="guided-tour.html">Guided Tour</a>
+        <a href="register.html" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem; margin-left: 10px;">Sign In</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <section class="brand-hero">
+      <div class="hero-glass-card">
+        <div class="brand-tag">Premium Tour Experiences</div>
+        <h1 class="h1 mb-6" style="font-size: 4.5rem; line-height: 1; letter-spacing: -2.5px;">Explore <br> <span class="text-gradient">Cholo Jaai</span></h1>
+        <p class="text-muted mb-10" style="font-size: 1.3rem; max-width: 650px; margin-left: auto; margin-right: auto;">
+          Unlock the unvisited beauty of Bangladesh with our premium travel platform. From custom routes to expert guides, we handle every detail for you.
+        </p>
+        <div class="flex justify-center gap-6">
+          <a href="packages.html" class="btn btn-primary">View Packages</a>
+          <a href="#features" class="btn btn-secondary glass">Why Cholo Jaai?</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="feature-grid" id="features">
+      <div class="feature-card">
+        <div class="feature-icon">🗺️</div>
+        <h3 class="h3 mb-4">Smart Customization</h3>
+        <p class="text-muted">Personalize every mile of your journey. Our platform adapts to your preferences, budget, and timeline.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📍</div>
+        <h3 class="h3 mb-4">Verified Local Experts</h3>
+        <p class="text-muted">Connect with professional guides who know the hidden gems that aren't on any map.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <h3 class="h3 mb-4">Secure & Seamless</h3>
+        <p class="text-muted">Enjoy instant digital invoices and 24/7 support for a completely stress-free expedition.</p>
+      </div>
+    </section>
+
+    <section class="stat-row">
+      <div class="stat-item">
+        <h4 class="text-gradient">15,000+</h4>
+        <div class="stat-label">Successful Trips</div>
+      </div>
+      <div class="stat-item">
+        <h4 style="color: var(--secondary);">500+</h4>
+        <div class="stat-label">Certified Guides</div>
+      </div>
+      <div class="stat-item">
+        <h4 style="color: var(--accent);">4.9/5</h4>
+        <div class="stat-label">Average Rating</div>
+      </div>
+    </section>
+
+    <section class="cta-banner">
+      <h2 style="font-size: 3rem; margin-bottom: 20px;">Ready for your adventure?</h2>
+      <p style="font-size: 1.2rem; margin-bottom: 40px; opacity: 0.9;">Join the Cholo Jaai community and redefine how you travel.</p>
+      <a href="register.html" class="btn" style="background: #0f172a; color: white;">Get Started Now</a>
+    </section>
+  </main>
+
+  <footer style="padding: 60px 0; text-align: center; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.9rem;">
+    <p>Copyright &copy; 2026 Cholo Jaai. All rights reserved.</p>
+  </footer>
+
+  <!-- Inlined Core Logic (Simplified for Landing Page) -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Smooth scroll for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          document.querySelector(this.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+        });
+      });
+      
+      // Dynamic Navbar Background
+      window.addEventListener('scroll', () => {
+        const nav = document.querySelector('.navbar');
+        if (window.scrollY > 50) {
+          nav.style.background = 'rgba(10, 15, 24, 0.95)';
+          nav.style.padding = '10px 0';
+        } else {
+          nav.style.background = 'rgba(10, 15, 24, 0.8)';
+          nav.style.padding = '15px 0';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

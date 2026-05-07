@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | Cholo Jaai</title>
+  <script>
+    // Security check: ensure only admins can access this page
+    (function() {
+      const adminSession = localStorage.getItem('CJ_ADMIN');
+      const userSession = localStorage.getItem('CJ_USER');
+      const adminRoles = ['Master Admin', 'Moderator', 'Support Agent'];
+      let isAdmin = false;
+      if (adminSession) {
+        try { isAdmin = adminRoles.includes(JSON.parse(adminSession).type); } catch(e) {}
+      }
+      if (!isAdmin && userSession) {
+        try { isAdmin = adminRoles.includes(JSON.parse(userSession).type); } catch(e) {}
+      }
+      if (!isAdmin) window.location.replace('admin-login.html');
+    })();
+  </script>
+  <link rel="stylesheet" href="index.css?v=2.0">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    .admin-container { max-width: 1200px; margin: 0 auto; padding-top: 120px; padding-bottom: 60px; }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .stat-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 10px 25px rgba(0, 230, 118, 0.1); }
+    .stat-value { font-size: 3rem; font-weight: 800; color: var(--primary); font-family: 'Outfit', sans-serif; line-height: 1; margin-bottom: 8px; }
+    .stat-label { font-size: 1rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 1px;}
+    
+    .data-table-container {
+      background: var(--surface-glass);
+      backdrop-filter: blur(20px);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      overflow-x: auto;
+      margin-top: 24px;
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 800px; }
+    th, td { padding: 16px 24px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    th { font-weight: 600; color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.2); }
+    tr:hover { background: rgba(255,255,255,0.02); }
+    .td-highlight { color: var(--text-main); font-weight: 500; }
+    .tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 24px; }
+    .tab { flex: 1; text-align: center; padding: 16px; cursor: pointer; font-weight: 600; color: var(--text-muted); transition: all 0.2s; font-size: 1.1rem; }
+    .tab.active { color: var(--primary); border-bottom: 2px solid var(--primary); margin-bottom: -2px; }
+    .pane { display: none; animation: fadeIn 0.4s ease; }
+    .pane.active { display: block; }
+    .btn-icon { background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color: var(--text-muted); cursor: pointer; padding: 6px 10px; border-radius: 4px; transition: all 0.2s; font-size: 0.9rem; }
+    .btn-icon:hover:not(:disabled) { background: var(--primary); color: #000; border-color: var(--primary); }
+    .btn-icon.btn-icon-danger:hover:not(:disabled) { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-icon:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+</head>
+<body class="animate-fade-up">
+  <div class="bg-mesh">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+  </div>
+
+  <main class="container admin-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <h1 class="h2 mb-0">Admin <span class="text-gradient">Control Center</span></h1>
+      <button id="logoutBtn" class="btn" style="background: rgba(255, 61, 0, 0.1); border: 1px solid var(--accent); color: var(--accent); padding: 8px 16px;">Logout</button>
+    </div>
+    <p class="text-muted mb-8" style="font-size: 1.1rem;">Manage platform activity and user reservations.</p>
+    
+    <div style="display: flex; gap: 16px; margin-bottom: 24px; align-items: center; flex-wrap: wrap;">
+      <input type="text" id="searchInput" class="input-box" placeholder="Search by name, destination, email, or status..." style="flex: 1; min-width: 200px;">
+      <button id="exportCsvBtn" class="btn btn-secondary glass flex items-center gap-2">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Export CSV
+      </button>
+    </div>
+    
+    <div class="grid grid-cols-3 gap-6 mb-12" id="statsContainer">
+      <div class="stat-card">
+        <div class="stat-value" id="statUsers">--</div>
+        <div class="stat-label">Total Accounts</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statBookings">--</div>
+        <div class="stat-label">Direct Bookings</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statCustomTours" style="color: var(--secondary);">--</div>
+        <div class="stat-label">Custom Tours</div>
+      </div>
+    </div>
+
+    <!-- Analytics Charts -->
+    <div class="grid gap-6 mb-12 chart-grid" id="chartsContainer">
+      <div class="card p-6 glass">
+        <h3 class="h3 mb-4" style="font-size: 1.2rem; color: var(--text-muted);">Popular Destinations</h3>
+        <div style="position: relative; height: 180px; width: 100%;">
+          <canvas id="destinationChart"></canvas>
+        </div>
+        <div id="customLegend" style="margin-top: 24px;"></div>
+      </div>
+      <div class="card p-6 glass">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="h3" style="font-size: 1.2rem; color: var(--text-muted);">Booking Trends</h3>
+          <select id="chartTimeFilter" class="input-box" style="width: auto; padding: 6px 16px; font-size: 0.95rem; border-radius: 99px; border: 1px solid var(--primary); background: rgba(0, 230, 118, 0.1); color: var(--primary); font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0, 230, 118, 0.15);">
+            <option value="7" style="color: #000;">Last 7 Days</option>
+            <option value="14" selected style="color: #000;">Last 14 Days</option>
+            <option value="30" style="color: #000;">Last 1 Month</option>
+            <option value="365" style="color: #000;">Last 1 Year</option>
+          </select>
+        </div>
+        <div style="position: relative; height: 220px; width: 100%;">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" data-target="allPane">All Recent Requests</div>
+      <div class="tab" data-target="usersPane">User Accounts</div>
+      <div class="tab" data-target="bookingsPane">Standard Bookings</div>
+      <div class="tab" data-target="customPane">Custom & Guided Tours</div>
+      <div class="tab" data-target="packagesPane">Tour Packages</div>
+    </div>
+
+    <div id="allPane" class="pane active">
+      <div class="status-filter-bar" id="allStatusFilter">
+        <div class="status-filter-item active" data-status="All" style="--bg-item: rgba(255,255,255,0.1); --text-item: #fff; --shadow-item: rgba(255,255,255,0.05);">All</div>
+        <div class="status-filter-item" data-status="Pending" style="--bg-item: rgba(252,211,77,0.15); --text-item: #FCD34D; --shadow-item: rgba(252,211,77,0.1);">Pending</div>
+        <div class="status-filter-item" data-status="Approved" style="--bg-item: rgba(0,176,255,0.15); --text-item: #00B0FF; --shadow-item: rgba(0,176,255,0.1);">Approved</div>
+        <div class="status-filter-item" data-status="On Process" style="--bg-item: rgba(192,132,252,0.15); --text-item: #C084FC; --shadow-item: rgba(192,132,252,0.1);">On Process</div>
+        <div class="status-filter-item" data-status="Confirmed" style="--bg-item: rgba(0,230,118,0.15); --text-item: #00E676; --shadow-item: rgba(0,230,118,0.1);">Confirmed</div>
+        <div class="status-filter-item" data-status="Going On" style="--bg-item: rgba(244,114,182,0.15); --text-item: #F472B6; --shadow-item: rgba(244,114,182,0.1);">Going On</div>
+        <div class="status-filter-item" data-status="Completed" style="--bg-item: rgba(0,230,118,0.25); --text-item: #00E676; --shadow-item: rgba(0,230,118,0.2);">Completed</div>
+        <div class="status-filter-item" data-status="Cancelled" style="--bg-item: rgba(255,61,0,0.15); --text-item: #FF3D00; --shadow-item: rgba(255,61,0,0.1);">Cancelled</div>
+      </div>
+      <div class="data-table-container">
+        <table>
+          <thead>
+            <tr><th>Type</th><th>Status</th><th>Payment</th><th>Destination</th><th>Traveler & Contact</th><th>Date</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="allTbody">
+            <tr><td colspan="8" class="text-center py-12 text-muted">Loading unified requests...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="allPagination" class="pagination-controls"></div>
+    </div>
+
+    <div id="usersPane" class="pane">
+      <div class="data-table-container">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Name</th><th>Email</th><th>Type</th><th>Joined At</th></tr>
+          </thead>
+          <tbody id="usersTbody">
+            <tr><td colspan="5" class="text-center py-12 text-muted">Loading users...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="usersPagination" class="pagination-controls"></div>
+    </div>
+
+    <div id="bookingsPane" class="pane">
+      <div class="status-filter-bar" id="bookingsStatusFilter">
+        <div class="status-filter-item active" data-status="All" style="--bg-item: rgba(255,255,255,0.1); --text-item: #fff; --shadow-item: rgba(255,255,255,0.05);">All</div>
+        <div class="status-filter-item" data-status="Pending" style="--bg-item: rgba(252,211,77,0.15); --text-item: #FCD34D; --shadow-item: rgba(252,211,77,0.1);">Pending</div>
+        <div class="status-filter-item" data-status="Confirmed" style="--bg-item: rgba(0,230,118,0.15); --text-item: #00E676; --shadow-item: rgba(0,230,118,0.1);">Confirmed</div>
+        <div class="status-filter-item" data-status="Cancelled" style="--bg-item: rgba(255,61,0,0.15); --text-item: #FF3D00; --shadow-item: rgba(255,61,0,0.1);">Cancelled</div>
+      </div>
+      <div class="data-table-container">
+        <table>
+          <thead>
+            <tr><th>Status</th><th>Payment</th><th>Destination</th><th>Traveler & Contact</th><th>Date</th><th>Pax</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="bookingsTbody">
+            <tr><td colspan="8" class="text-center py-12 text-muted">Loading bookings...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="bookingsPagination" class="pagination-controls"></div>
+    </div>
+
+    <div id="customPane" class="pane">
+      <div class="status-filter-bar" id="customStatusFilter">
+        <div class="status-filter-item active" data-status="All" style="--bg-item: rgba(255,255,255,0.1); --text-item: #fff; --shadow-item: rgba(255,255,255,0.05);">All</div>
+        <div class="status-filter-item" data-status="Pending" style="--bg-item: rgba(252,211,77,0.15); --text-item: #FCD34D; --shadow-item: rgba(252,211,77,0.1);">Pending</div>
+        <div class="status-filter-item" data-status="On Process" style="--bg-item: rgba(192,132,252,0.15); --text-item: #C084FC; --shadow-item: rgba(192,132,252,0.1);">On Process</div>
+        <div class="status-filter-item" data-status="Completed" style="--bg-item: rgba(0,230,118,0.25); --text-item: #00E676; --shadow-item: rgba(0,230,118,0.2);">Completed</div>
+        <div class="status-filter-item" data-status="Cancelled" style="--bg-item: rgba(255,61,0,0.15); --text-item: #FF3D00; --shadow-item: rgba(255,61,0,0.1);">Cancelled</div>
+      </div>
+      <div class="data-table-container">
+        <table>
+          <thead>
+            <tr><th>Status</th><th>Payment</th><th>Tour Type</th><th>Destination</th><th>Requester & Contact</th><th>Details</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="customTbody">
+            <tr><td colspan="8" class="text-center py-12 text-muted">Loading tour requests...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="customPagination" class="pagination-controls"></div>
+    </div>
+
+    <div id="packagesPane" class="pane">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 class="h3">Manage Tour Packages</h3>
+        <button id="addPackageBtn" class="btn btn-primary">+ Add New Package</button>
+      </div>
+      <div class="data-table-container">
+        <table>
+          <thead>
+            <tr><th>Image</th><th>Title</th><th>Location</th><th>Duration</th><th>Price</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="packagesTbody">
+            <tr><td colspan="6" class="text-center py-12 text-muted">Loading packages...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="packagesPagination" class="pagination-controls"></div>
+    </div>
+
+  </main>
+
+  <!-- Notes Modal -->
+  <div id="notesModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center; backdrop-filter: blur(5px);">
+    <div class="card p-6" style="width:100%; max-width:500px; border-top:4px solid var(--primary);">
+      <h3 class="mb-2 text-gradient h3">Admin Notes</h3>
+      <p class="text-muted mb-4 text-sm" id="notesFor">Editing notes</p>
+      <textarea id="notesArea" class="input-box mb-6" rows="6" placeholder="Add private notes, special requests, or payment details here..." style="resize: vertical;"></textarea>
+      <div class="flex" style="gap: 12px; justify-content: flex-end;">
+        <button id="closeNotesBtn" class="btn" style="background: rgba(255,255,255,0.1);">Cancel</button>
+        <button id="saveNotesBtn" class="btn btn-primary">Save Notes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Package Modal -->
+  <div id="packageModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center; backdrop-filter: blur(5px);">
+    <div class="card p-6" style="width:100%; max-width:500px; border-top:4px solid var(--primary); max-height: 90vh; overflow-y: auto;">
+      <h3 class="mb-4 text-gradient h3" id="packageModalTitle">Add Tour Package</h3>
+      <input type="hidden" id="packageId">
+      <input type="text" id="pkgTitle" class="input-box mb-4" placeholder="Package Title (e.g., Sajek Valley Tour)" required>
+      <input type="text" id="pkgLocation" class="input-box mb-4" placeholder="Location Slug (e.g., sajek)" required>
+      <input type="text" id="pkgDuration" class="input-box mb-4" placeholder="Duration (e.g., 3 Days, 2 Nights)" required>
+      <input type="number" id="pkgPrice" class="input-box mb-4" placeholder="Price per person (BDT)" required>
+      <input type="hidden" id="pkgImageData">
+      <div id="imageUploadArea" style="border: 2px dashed rgba(255,255,255,0.15); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; margin-bottom: 16px; transition: border-color 0.2s; position: relative;" onclick="document.getElementById('pkgImageFile').click()" ondragover="event.preventDefault();this.style.borderColor='var(--primary)'" ondragleave="this.style.borderColor='rgba(255,255,255,0.15)'" ondrop="event.preventDefault();this.style.borderColor='rgba(255,255,255,0.15)';handleImageDrop(event)">
+        <input type="file" id="pkgImageFile" accept="image/*" style="display:none;" onchange="handleImageSelect(this)">
+        <div id="imageUploadPlaceholder">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" style="margin:0 auto 8px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <p style="color: rgba(255,255,255,0.4); font-size: 0.9rem; margin: 0;">Click or drag & drop to upload image</p>
+          <p style="color: rgba(255,255,255,0.25); font-size: 0.8rem; margin: 4px 0 0;">JPG, PNG, WEBP supported</p>
+        </div>
+        <div id="imagePreviewContainer" style="display:none;">
+          <img id="imagePreview" style="max-width: 100%; max-height: 180px; border-radius: 8px; object-fit: cover;">
+          <p style="color: var(--primary); font-size: 0.8rem; margin: 8px 0 0;">✓ Image selected — click to change</p>
+        </div>
+      </div>
+      <textarea id="pkgDescription" class="input-box mb-6" rows="4" placeholder="Short Description..." style="resize: vertical;"></textarea>
+      
+      <div class="flex" style="gap: 12px; justify-content: flex-end;">
+        <button id="closePackageBtn" class="btn" style="background: rgba(255,255,255,0.1);">Cancel</button>
+        <button id="savePackageBtn" class="btn btn-primary">Save Package</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="common.js?v=2.1"></script>
+  <script>
+    // Image upload handler
+    function handleImageSelect(input) {
+      const file = input.files[0];
+      if (!file) return;
+      readImageFile(file);
+    }
+
+    function handleImageDrop(event) {
+      const file = event.dataTransfer.files[0];
+      if (!file || !file.type.startsWith('image/')) return;
+      readImageFile(file);
+    }
+
+    function readImageFile(file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const dataUrl = e.target.result;
+        document.getElementById('pkgImageData').value = dataUrl;
+        document.getElementById('imagePreview').src = dataUrl;
+        document.getElementById('imagePreviewContainer').style.display = 'block';
+        document.getElementById('imageUploadPlaceholder').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Tab switching
+    const tabs = document.querySelectorAll('.tab');
+    const panes = document.querySelectorAll('.pane');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        panes.forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.target).classList.add('active');
+      });
+    });
+
+    // Formatting date
+    function formatDate(dStr) {
+      if (!dStr) return 'N/A';
+      return new Date(dStr).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
+
+    async function fetchData(model) {
+      try {
+        const res = await APP.API.fetch(`/api/data/${model}`);
+        return (res.success && Array.isArray(res.data)) ? res.data : [];
+      } catch (err) {
+        console.error('Fetch error:', err);
+        return [];
+      }
+    }
+
+    async function initAdmin() {
+      // Fetch datasets
+      const [users, bookings, customTours, guidedTours, packages] = await Promise.all([
+        fetchData('users'),
+        fetchData('bookings'),
+        fetchData('customTours'),
+        fetchData('guidedTours'),
+        fetchData('packages')
+      ]);
+      window.loadedData = { 
+        users: users || [], 
+        bookings: bookings || [], 
+        customTours: customTours || [], 
+        guidedTours: guidedTours || [], 
+        packages: packages || [] 
+      };
+
+      // Update Stats
+      document.getElementById('statUsers').textContent = window.loadedData.users.length;
+      document.getElementById('statBookings').textContent = window.loadedData.bookings.length;
+      document.getElementById('statCustomTours').textContent = window.loadedData.customTours.length + window.loadedData.guidedTours.length;
+
+      // Get current user for permission check
+      const adminSessionData = localStorage.getItem('CJ_ADMIN') || localStorage.getItem('CJ_USER');
+      const currentUser = adminSessionData ? JSON.parse(adminSessionData) : null;
+      const selectDisabled = (currentUser && currentUser.type === 'Support Agent') ? 'disabled' : '';
+
+      // Save global references for updates
+      window.adminPages = { all: 1, users: 1, bookings: 1, custom: 1, packages: 1 };
+      const adminFilters = { all: 'All', bookings: 'All', custom: 'All' };
+      const ADMIN_PAGE_SIZE = 10;
+
+      // Pagination Helper
+      function renderPaginationControls(containerId, totalItems, currentPage, onPageChange) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const totalPages = Math.ceil(totalItems / ADMIN_PAGE_SIZE) || 1;
+        container.innerHTML = `
+          <div class="page-info">Showing page <b>${currentPage}</b> of <b>${totalPages}</b> (${totalItems} items)</div>
+          <div class="pagination-btns">
+            <button class="btn-page" ${currentPage === 1 ? 'disabled' : ''} onclick="${onPageChange}(${currentPage - 1})">←</button>
+            <button class="btn-page" ${currentPage === totalPages ? 'disabled' : ''} onclick="${onPageChange}(${currentPage + 1})">→</button>
+          </div>
+        `;
+      }
+
+      function getStatusSelect(item, model) {
+         const currentStatus = item.status || 'Pending';
+         let bgColor = 'rgba(255,255,255,0.08)';
+         let textColor = 'var(--text-main)';
+
+         if (currentStatus === 'Pending') { bgColor = 'rgba(252, 211, 77, 0.12)'; textColor = '#FCD34D'; }
+         else if (currentStatus === 'Approved') { bgColor = 'rgba(0, 176, 255, 0.12)'; textColor = '#00B0FF'; }
+         else if (currentStatus === 'Confirmed') { bgColor = 'rgba(0, 230, 118, 0.12)'; textColor = '#00E676'; }
+         else if (currentStatus === 'On Process') { bgColor = 'rgba(192, 132, 252, 0.12)'; textColor = '#C084FC'; }
+         else if (currentStatus === 'Going On') { bgColor = 'rgba(244, 114, 182, 0.12)'; textColor = '#F472B6'; }
+         else if (currentStatus === 'Completed') { bgColor = 'rgba(0, 230, 118, 0.2)'; textColor = '#00E676'; }
+         else if (currentStatus === 'Cancelled') { bgColor = 'rgba(255, 61, 0, 0.12)'; textColor = '#FF3D00'; }
+
+         return `
+           <select class="status-select badge" data-id="${item.id}" data-model="${model}" ${selectDisabled} style="background: ${bgColor}; border:1px solid rgba(255,255,255,0.1); outline:none; color: ${textColor}; cursor:pointer; font-size:0.65rem; padding: 2px 4px; height: 24px; font-weight:700;">
+             <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''} style="color:#000;">Pending</option>
+             <option value="Approved" ${currentStatus === 'Approved' ? 'selected' : ''} style="color:#000;">Approved</option>
+             <option value="Confirmed" ${currentStatus === 'Confirmed' ? 'selected' : ''} style="color:#000;">Confirmed</option>
+             <option value="On Process" ${currentStatus === 'On Process' ? 'selected' : ''} style="color:#000;">On Process</option>
+             <option value="Going On" ${currentStatus === 'Going On' ? 'selected' : ''} style="color:#000;">Going On</option>
+             <option value="Completed" ${currentStatus === 'Completed' ? 'selected' : ''} style="color:#000;">Completed</option>
+             <option value="Cancelled" ${currentStatus === 'Cancelled' ? 'selected' : ''} style="color:#000;">Cancelled</option>
+           </select>
+         `;
+      }
+
+      function getPaymentSelect(item, model) {
+         const currentStatus = item.payment || 'Unpaid';
+         return `
+           <select class="payment-select badge" data-id="${item.id}" data-model="${model}" ${selectDisabled} style="background: ${currentStatus === 'Paid' ? 'rgba(0,230,118,0.1)' : 'rgba(255,255,255,0.08)'}; color: ${currentStatus === 'Paid' ? 'var(--primary)' : 'var(--text-main)'}; border:1px solid rgba(255,255,255,0.1); outline:none; cursor:pointer; font-size:0.65rem; padding: 2px 4px; height: 24px;">
+             <option value="Unpaid" ${currentStatus === 'Unpaid' ? 'selected' : ''} style="color:#000;">Unpaid</option>
+             <option value="Partial" ${currentStatus === 'Partial' ? 'selected' : ''} style="color:#000;">Partial</option>
+             <option value="Paid" ${currentStatus === 'Paid' ? 'selected' : ''} style="color:#000;">Paid</option>
+           </select>
+         `;
+      }
+
+      function getActions(item, model) {
+         const hasNotes = item.notes && item.notes.trim() !== '';
+         const notesColor = hasNotes ? 'var(--primary)' : 'inherit';
+         return `
+           <div style="display:flex; gap: 8px;">
+             <button class="btn-icon invoice-btn" data-id="${item.id}" data-model="${model}" title="Download Invoice">📄</button>
+             <button class="btn-icon notes-btn" data-id="${item.id}" data-model="${model}" style="color: ${notesColor}" title="Admin Notes">📝</button>
+             <button class="btn-icon btn-icon-danger delete-btn" data-id="${item.id}" data-model="${model}" ${selectDisabled} title="Delete Record">🗑️</button>
+           </div>
+         `;
+      }
+
+      window.renderPackages = function(page = 1) {
+        window.adminPages.packages = page;
+        const pTbody = document.getElementById('packagesTbody');
+        const data = window.loadedData.packages || [];
+        if (data.length === 0) pTbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-muted">No packages found.</td></tr>';
+        else {
+          const start = (page - 1) * ADMIN_PAGE_SIZE;
+          pTbody.innerHTML = data.slice(start, start + ADMIN_PAGE_SIZE).map(p => `
+            <tr>
+              <td><img src="${p.image}" alt="${p.title}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border);"></td>
+              <td class="td-highlight" style="font-size:0.95rem;">${p.title}</td>
+              <td>${p.location}</td>
+              <td>${p.duration}</td>
+              <td><span style="font-weight:700; color:var(--primary); font-size:1rem;">৳${p.price}</span></td>
+              <td>${getActions(p, 'packages')}</td>
+            </tr>
+          `).join('');
+        }
+        renderPaginationControls('packagesPagination', data.length, page, 'renderPackages');
+      };
+
+      window.renderUsers = function(page = 1) {
+        window.adminPages.users = page;
+        const uTbody = document.getElementById('usersTbody');
+        const normalUsers = (window.loadedData.users || []).filter(u => !['Master Admin', 'Moderator', 'Support Agent'].includes(u.type));
+        if (normalUsers.length === 0) uTbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-muted">No users found.</td></tr>';
+        else {
+          const start = (page - 1) * ADMIN_PAGE_SIZE;
+          uTbody.innerHTML = normalUsers.slice(start, start + ADMIN_PAGE_SIZE).map((u, index) => `
+            <tr>
+              <td class="text-muted" style="font-size:0.8rem;">#${start + index + 1}</td>
+              <td class="td-highlight">${u.name}</td>
+              <td style="color:var(--text-muted);">${u.email}</td>
+              <td><span class="badge" style="background: rgba(0,176,255,0.1); color: var(--secondary); font-size:0.7rem;">${u.type}</span></td>
+              <td class="text-muted" style="font-size:0.85rem;">${formatDate(u.created_at)}</td>
+            </tr>
+          `).join('');
+        }
+        renderPaginationControls('usersPagination', normalUsers.length, page, 'renderUsers');
+      };
+
+      window.renderAllRequests = function(page = 1) {
+        window.adminPages.all = page;
+        const allTbody = document.getElementById('allTbody');
+        const allRequests = [
+          ...(window.loadedData.bookings || []).map(b => ({ ...b, _type: 'Standard', _model: 'bookings' })),
+          ...(window.loadedData.customTours || []).map(c => ({ ...c, _type: 'Custom', _model: 'customTours' })),
+          ...(window.loadedData.guidedTours || []).map(g => ({ ...g, _type: 'Guided', _model: 'guidedTours' }))
+        ].sort((a,b) => b.id - a.id)
+         .filter(r => adminFilters.all === 'All' || r.status === adminFilters.all);
+
+        if (allRequests.length === 0) allTbody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-muted">No ${adminFilters.all !== 'All' ? adminFilters.all + ' ' : ''}requests found.</td></tr>`;
+        else {
+          const start = (page - 1) * ADMIN_PAGE_SIZE;
+          allTbody.innerHTML = allRequests.slice(start, start + ADMIN_PAGE_SIZE).map(r => `
+            <tr>
+              <td><span class="badge" style="background: rgba(255,255,255,0.05); color: ${r._type === 'Standard' ? 'var(--primary)' : (r._type === 'Custom' ? 'var(--secondary)' : 'var(--accent)')}; border: 1px solid rgba(255,255,255,0.1); font-size:0.6rem;">${r._type}</span></td>
+              <td>${getStatusSelect(r, r._model)}</td>
+              <td>${getPaymentSelect(r, r._model)}</td>
+              <td class="td-highlight" style="font-size:0.85rem;">${r.destination || 'N/A'}</td>
+              <td style="font-size:0.75rem; max-width: 150px;">
+                <div style="font-weight:700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${r.name || ''}">${r.name || 'Unknown'}</div>
+                <div style="color:var(--primary);">${r.mobile || r.phone || ''}</div>
+              </td>
+              <td class="text-muted" style="font-size:0.8rem;">${r.date ? new Date(r.date).toLocaleDateString() : 'TBD'}</td>
+              <td>${getActions(r, r._model)}</td>
+            </tr>
+          `).join('');
+        }
+        renderPaginationControls('allPagination', allRequests.length, page, 'renderAllRequests');
+      };
+
+      window.renderBookings = function(page = 1) {
+        window.adminPages.bookings = page;
+        const bTbody = document.getElementById('bookingsTbody');
+        const data = (window.loadedData.bookings || [])
+          .sort((a,b) => b.id - a.id)
+          .filter(b => adminFilters.bookings === 'All' || b.status === adminFilters.bookings);
+
+        if (data.length === 0) bTbody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-muted">No ${adminFilters.bookings !== 'All' ? adminFilters.bookings + ' ' : ''}bookings yet.</td></tr>`;
+        else {
+          const start = (page - 1) * ADMIN_PAGE_SIZE;
+          bTbody.innerHTML = data.slice(start, start + ADMIN_PAGE_SIZE).map(b => `
+            <tr>
+              <td>${getStatusSelect(b, 'bookings')}</td>
+              <td>${getPaymentSelect(b, 'bookings')}</td>
+              <td class="td-highlight">${b.destination}</td>
+              <td style="font-size:0.75rem; max-width: 150px;">
+                <div style="font-weight:700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${b.name}">${b.name}</div>
+                <div style="color:var(--primary);">${b.mobile}</div>
+              </td>
+              <td class="text-muted" style="font-size:0.8rem;">${new Date(b.date).toLocaleDateString()}</td>
+              <td><span class="badge" style="background:rgba(255,255,255,0.05);">${b.persons}</span></td>
+              <td>${getActions(b, 'bookings')}</td>
+            </tr>
+          `).join('');
+        }
+        renderPaginationControls('bookingsPagination', data.length, page, 'renderBookings');
+      };
+
+      window.renderMixedTours = function(page = 1) {
+        window.adminPages.custom = page;
+        const cTbody = document.getElementById('customTbody');
+        const mixedTours = [
+          ...(window.loadedData.customTours || []).map(t => ({ ...t, _model: 'customTours', _tourType: 'Custom Tour', _contact: t.email, _details: `Budget: ${t.budget} | ${t.travelers} P` })),
+          ...(window.loadedData.guidedTours || []).map(t => ({ ...t, _model: 'guidedTours', _tourType: 'Guided Tour', _contact: t.phone, _details: `Guide: ${t.guide} | ${t.language}` }))
+        ].sort((a,b) => b.id - a.id)
+         .filter(t => adminFilters.custom === 'All' || t.status === adminFilters.custom);
+
+        if (mixedTours.length === 0) cTbody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-muted">No ${adminFilters.custom !== 'All' ? adminFilters.custom + ' ' : ''}requests yet.</td></tr>`;
+        else {
+          const start = (page - 1) * ADMIN_PAGE_SIZE;
+          cTbody.innerHTML = mixedTours.slice(start, start + ADMIN_PAGE_SIZE).map(t => `
+            <tr>
+              <td>${getStatusSelect(t, t._model)}</td>
+              <td>${getPaymentSelect(t, t._model)}</td>
+              <td><span class="badge" style="background: ${t._tourType === 'Custom Tour' ? 'rgba(0,176,255,0.05)' : 'rgba(255,61,0,0.05)'}; color: ${t._tourType === 'Custom Tour' ? 'var(--secondary)' : 'var(--accent)'}; font-size:0.6rem;">${t._tourType}</span></td>
+              <td class="td-highlight" style="font-size:0.85rem;">${t.destination}</td>
+              <td style="font-size:0.75rem; max-width: 150px;">
+                <div style="font-weight:700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${t.name}">${t.name}</div>
+                <div style="color:var(--primary);">${t._contact}</div>
+              </td>
+              <td class="text-muted" style="font-size: 0.75rem;">${t._details}</td>
+              <td>${getActions(t, t._model)}</td>
+            </tr>
+          `).join('');
+        }
+        renderPaginationControls('customPagination', mixedTours.length, page, 'renderMixedTours');
+      };
+
+      // Set up Filter Event Listeners
+      document.querySelectorAll('.status-filter-bar').forEach(bar => {
+        bar.addEventListener('click', (e) => {
+          const item = e.target.closest('.status-filter-item');
+          if (!item) return;
+          const paneId = bar.id.replace('StatusFilter', '');
+          adminFilters[paneId] = item.dataset.status;
+          bar.querySelectorAll('.status-filter-item').forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+          if (paneId === 'all') window.renderAllRequests(1);
+          if (paneId === 'bookings') window.renderBookings(1);
+          if (paneId === 'custom') window.renderMixedTours(1);
+        });
+      });
+
+      // Initial Renders
+      window.renderUsers(1);
+      window.renderAllRequests(1);
+      window.renderBookings(1);
+      window.renderMixedTours(1);
+      window.renderPackages(1);
+
+      // Initialize Charts
+      initCharts(14); 
+      document.getElementById('chartTimeFilter').addEventListener('change', (e) => initCharts(parseInt(e.target.value)));
+    }
+
+    let trendChartInstance = null;
+    let destChartInstance = null;
+
+    function initCharts(daysToLookBack) {
+      if (!window.loadedData || !window.loadedData.bookings) return;
+      // 1. Process data for Booking Trends
+      const daysArray = [];
+      const counts = {};
+      const today = new Date();
+      
+      for(let i=daysToLookBack-1; i>=0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        daysArray.push(dateStr);
+        counts[dateStr] = 0;
+      }
+
+      // We use 'created_at' for trend date if available, else 'date'
+      window.loadedData.bookings.forEach(b => {
+        let dStr = b.created_at ? b.created_at.split(' ')[0] : (b.date ? b.date.split('T')[0] : null);
+        if (dStr && counts[dStr] !== undefined) counts[dStr]++;
+      });
+
+      const trendData = daysArray.map(date => counts[date]);
+      const trendLabels = daysArray.map(date => {
+        const [, m, d] = date.split('-');
+        // For larger ranges, maybe show month/year, but for now MM/DD works or just skip labels if it's 365
+        return daysToLookBack > 30 ? `${m}/${d}` : `${d}/${m}`; 
+      });
+
+      const ctxTrend = document.getElementById('trendChart').getContext('2d');
+      if (trendChartInstance) trendChartInstance.destroy();
+      trendChartInstance = new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+          labels: trendLabels,
+          datasets: [{
+            label: 'New Bookings',
+            data: trendData,
+            borderColor: '#00e676',
+            backgroundColor: 'rgba(0, 230, 118, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#00b0ff',
+            pointRadius: daysToLookBack > 30 ? 0 : 4 // Hide points if too many days
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', maxTicksLimit: 14 } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', stepSize: 1, beginAtZero: true } }
+          }
+        }
+      });
+
+      // 2. Process data for Popular Destinations
+      const destCounts = {};
+      const allTours = [
+        ...(window.loadedData.bookings || []),
+        ...(window.loadedData.customTours || []),
+        ...(window.loadedData.guidedTours || [])
+      ];
+
+      let totalDestTours = 0;
+      allTours.forEach(t => {
+        if (t.destination) {
+          const dest = t.destination.split(',')[0].trim();
+          destCounts[dest] = (destCounts[dest] || 0) + 1;
+          totalDestTours++;
+        }
+      });
+
+      const sortedDests = Object.entries(destCounts).sort((a,b) => b[1] - a[1]).slice(0, 5);
+      const destLabels = sortedDests.map(x => {
+        const percent = Math.round((x[1] / totalDestTours) * 100);
+        return `${x[0]} (${percent}%)`;
+      });
+      
+      const bgColors = ['#00e676', '#00b0ff', '#ff3d00', '#FCD34D', '#c084fc'];
+      
+      const ctxDest = document.getElementById('destinationChart').getContext('2d');
+      if (destChartInstance) destChartInstance.destroy();
+      destChartInstance = new Chart(ctxDest, {
+        type: 'doughnut',
+        data: {
+          labels: destLabels,
+          datasets: [{
+            data: sortedDests.map(x => x[1]),
+            backgroundColor: bgColors,
+            borderWidth: 0,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: {
+            legend: { display: false },
+            datalabels: { display: false } // In case it is globally registered
+          }
+        }
+      });
+
+      // Generate Custom Legend
+      const legendContainer = document.getElementById('customLegend');
+      legendContainer.innerHTML = sortedDests.map((dest, i) => {
+        const percent = Math.round((dest[1] / totalDestTours) * 100);
+        return `
+          <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+            <div style="width: 48px; height: 12px; background-color: ${bgColors[i]}; margin-right: 12px; border-radius: 2px;"></div>
+            <span style="color: #94a3b8; font-size: 0.95rem; font-weight: 500;">${dest[0]} (${percent}%)</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Logout logic
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem('CJ_ADMIN');
+        localStorage.removeItem('CJ_USER');
+        window.location.replace('admin-login.html');
+      });
+
+      // Handle status and payment change
+      document.addEventListener('change', async (e) => {
+        if(e.target.classList.contains('status-select') || e.target.classList.contains('payment-select')) {
+          const isStatus = e.target.classList.contains('status-select');
+          const newValue = e.target.value;
+          const id = parseInt(e.target.dataset.id);
+          const model = e.target.dataset.model;
+          
+          let itemIndex = -1;
+          if (window.loadedData && window.loadedData[model]) {
+            itemIndex = window.loadedData[model].findIndex(x => x.id === id);
+          }
+          
+          if (itemIndex > -1) {
+            const item = window.loadedData[model][itemIndex];
+            if (isStatus) item.status = newValue;
+            else item.payment = newValue;
+            
+            // Visual feedback for changes
+            if (isStatus) {
+              let bgColor = 'rgba(255,255,255,0.08)';
+              let textColor = 'var(--text-main)';
+              if (newValue === 'Pending') { bgColor = 'rgba(252, 211, 77, 0.12)'; textColor = '#FCD34D'; }
+              else if (newValue === 'Approved') { bgColor = 'rgba(0, 176, 255, 0.12)'; textColor = '#00B0FF'; }
+              else if (newValue === 'Confirmed') { bgColor = 'rgba(0, 230, 118, 0.12)'; textColor = '#00E676'; }
+              else if (newValue === 'On Process') { bgColor = 'rgba(192, 132, 252, 0.12)'; textColor = '#C084FC'; }
+              else if (newValue === 'Going On') { bgColor = 'rgba(244, 114, 182, 0.12)'; textColor = '#F472B6'; }
+              else if (newValue === 'Completed') { bgColor = 'rgba(0, 230, 118, 0.2)'; textColor = '#00E676'; }
+              else if (newValue === 'Cancelled') { bgColor = 'rgba(255, 61, 0, 0.12)'; textColor = '#FF3D00'; }
+              e.target.style.background = bgColor;
+              e.target.style.color = textColor;
+            } else {
+              e.target.style.background = newValue === 'Paid' ? 'rgba(0,230,118,0.1)' : 'rgba(255,255,255,0.08)';
+              e.target.style.color = newValue === 'Paid' ? 'var(--primary)' : 'var(--text-main)';
+            }
+            
+            // Remove transient properties before saving back to JSON
+            const { id: _id, created_at: _c, _model, _tourType, _contact, _details, ...dataToSave } = item;
+            
+            e.target.disabled = true;
+            try {
+               await APP.API.fetch('/api/update', {
+                 method: 'POST',
+                 headers: {'Content-Type': 'application/json'},
+                 body: JSON.stringify({ model, id, data: dataToSave })
+               });
+               e.target.style.boxShadow = '0 0 10px rgba(0,230,118,0.8)';
+               setTimeout(() => e.target.style.boxShadow = 'none', 1500);
+            } catch(err) {
+               console.error(err);
+               alert('Failed to update. Are you offline?');
+            } finally {
+               e.target.disabled = false;
+            }
+          }
+        }
+      });
+
+      // Handle Buttons (Delete, Notes, Edit Pkg, Delete Pkg)
+      let currentNoteTarget = null;
+      document.addEventListener('click', async (e) => {
+        // Handle Notes click
+        const notesBtn = e.target.closest('.notes-btn');
+        if (notesBtn) {
+          const id = parseInt(notesBtn.dataset.id);
+          const model = notesBtn.dataset.model;
+          currentNoteTarget = { id, model, btn: notesBtn };
+          
+          const item = window.loadedData[model].find(x => x.id === id);
+          document.getElementById('notesFor').textContent = `Adding notes for ID: #${id} (${item.name})`;
+          document.getElementById('notesArea').value = item.notes || '';
+          document.getElementById('notesModal').style.display = 'flex';
+        }
+
+        // Handle Invoice click
+        const invoiceBtn = e.target.closest('.invoice-btn');
+        if (invoiceBtn) {
+          const id = parseInt(invoiceBtn.dataset.id);
+          const model = invoiceBtn.dataset.model;
+          const item = window.loadedData[model].find(x => x.id === id);
+          let tourType = "Standard Booking";
+          if (model === "customTours") tourType = "Custom Tour";
+          if (model === "guidedTours") tourType = "Guided Tour";
+          if (item) APP.API.generatePDFInvoice(item, tourType);
+        }
+
+        // Handle Delete click
+        const deleteBtn = e.target.closest('.delete-btn');
+        if (deleteBtn) {
+          if (confirm('⚠️ Are you sure you want to permanently delete this record? This cannot be undone.')) {
+            const id = parseInt(deleteBtn.dataset.id);
+            const model = deleteBtn.dataset.model;
+            deleteBtn.disabled = true;
+            try {
+               const res = await APP.API.fetch('/api/delete', {
+                 method: 'POST',
+                 headers: {'Content-Type': 'application/json'},
+                 body: JSON.stringify({ model, id })
+               });
+               if(res.success) {
+                 deleteBtn.closest('tr').remove();
+               } else {
+                 alert(res.message);
+               }
+            } catch(err) {
+               console.error(err);
+               alert('Failed to delete.');
+            } finally {
+               deleteBtn.disabled = false;
+            }
+          }
+        }
+      });
+
+      // Handle Modal Buttons
+      document.getElementById('closeNotesBtn').addEventListener('click', () => {
+        document.getElementById('notesModal').style.display = 'none';
+      });
+
+      document.getElementById('saveNotesBtn').addEventListener('click', async () => {
+          if (!currentNoteTarget) return;
+          const { id, model, btn } = currentNoteTarget;
+          const newNotes = document.getElementById('notesArea').value;
+          const saveBtn = document.getElementById('saveNotesBtn');
+          
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'Saving...';
+          
+          try {
+             const item = window.loadedData[model].find(x => x.id === id);
+             item.notes = newNotes;
+             
+             // Save to backend
+             const { id: _id, created_at: _c, _model, _tourType, _contact, _details, ...dataToSave } = item;
+             await APP.API.fetch('/api/update', {
+               method: 'POST',
+               headers: {'Content-Type': 'application/json'},
+               body: JSON.stringify({ model, id, data: dataToSave })
+             });
+
+             document.getElementById('notesModal').style.display = 'none';
+             // Update UI
+             btn.style.color = newNotes.trim() ? 'var(--primary)' : 'inherit';
+          } catch(e) {
+             alert('Failed to save notes.');
+          } finally {
+             saveBtn.disabled = false;
+             saveBtn.textContent = 'Save Notes';
+          }
+      });
+
+      // Search Logic
+      document.getElementById('searchInput').addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        document.querySelectorAll('tbody tr').forEach(row => {
+          if (row.querySelector('.text-center')) return; // skip loading rows
+          row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
+        });
+      });
+
+      // Package Modal Create/Save Logic
+      document.getElementById('addPackageBtn').addEventListener('click', () => {
+        document.getElementById('packageModalTitle').textContent = 'Add Tour Package';
+        document.getElementById('packageId').value = '';
+        document.getElementById('pkgTitle').value = '';
+        document.getElementById('pkgLocation').value = '';
+        document.getElementById('pkgDuration').value = '';
+        document.getElementById('pkgPrice').value = '';
+        document.getElementById('pkgImageData').value = '';
+        document.getElementById('pkgDescription').value = '';
+        document.getElementById('imagePreviewContainer').style.display = 'none';
+        document.getElementById('imageUploadPlaceholder').style.display = 'block';
+        document.getElementById('packageModal').style.display = 'flex';
+      });
+
+      document.getElementById('closePackageBtn').addEventListener('click', () => {
+        document.getElementById('packageModal').style.display = 'none';
+      });
+
+      document.getElementById('savePackageBtn').addEventListener('click', async () => {
+        const id = document.getElementById('packageId').value;
+        const title = document.getElementById('pkgTitle').value;
+        const location = document.getElementById('pkgLocation').value;
+        const duration = document.getElementById('pkgDuration').value;
+        const price = document.getElementById('pkgPrice').value;
+        const image = document.getElementById('pkgImageData').value;
+        const description = document.getElementById('pkgDescription').value;
+
+        if (!title || !price || !location || !image) return alert('Title, Location, Price, and an Image are required.');
+
+        const saveBtn = document.getElementById('savePackageBtn');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+
+        const dataToSave = { title, location, duration, price, image, description };
+
+        try {
+          if (id) {
+            // Update
+            await APP.API.fetch('/api/update', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({ model: 'packages', id: parseInt(id), data: dataToSave })
+            });
+            const idx = window.loadedData.packages.findIndex(p => p.id === parseInt(id));
+            if (idx > -1) {
+              window.loadedData.packages[idx] = { id: parseInt(id), ...dataToSave };
+            }
+          } else {
+            // Create
+            const res = await APP.API.fetch('/api/save', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({ model: 'packages', data: dataToSave })
+            });
+            if (res.success) {
+              window.loadedData.packages.push(res.data);
+            }
+          }
+          document.getElementById('packageModal').style.display = 'none';
+          window.renderPackages();
+        } catch (e) {
+          alert('Failed to save package.');
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save Package';
+        }
+      });
+
+      // Export CSV Logic
+      document.getElementById('exportCsvBtn').addEventListener('click', () => {
+         let csvContent = "data:text/csv;charset=utf-8,";
+         const activeTab = document.querySelector('.tab.active').dataset.target;
+         const table = document.querySelector(`#${activeTab} table`);
+         
+         if(!table) return alert('No table to export.');
+
+         const rows = Array.from(table.querySelectorAll('tr'));
+         rows.forEach(row => {
+            if(row.style.display === 'none') return;
+            const cols = Array.from(row.querySelectorAll('th, td'));
+            // Exclude "Actions" column which is the last one
+            const rowData = cols.slice(0, -1).map(c => {
+               const select = c.querySelector('select');
+               let text = select ? select.value : c.innerText.trim();
+               return `"${text.replace(/"/g, '""')}"`;
+            });
+            csvContent += rowData.join(",") + "\r\n";
+         });
+
+         const encodedUri = encodeURI(csvContent);
+         const link = document.createElement("a");
+         link.setAttribute("href", encodedUri);
+         link.setAttribute("download", `cholojai_export_${new Date().getTime()}.csv`);
+         document.body.appendChild(link);
+         link.click();
+         link.remove();
+      });
+
+      initAdmin();
+    });
+  </script>
+</body>
+</html>

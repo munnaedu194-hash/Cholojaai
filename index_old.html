@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cholo Jaai | Smart Tour Planner</title>
+  <link rel="stylesheet" href="index.css?v=2.0">
+  <style>
+    .hero-section {
+      padding: 110px 0 60px;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 10;
+    }
+
+    .hero-image-wrapper {
+      position: relative;
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.5);
+      transform: perspective(1000px) rotateY(-12deg) rotateX(8deg) scale(0.95);
+      transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .hero-image-wrapper:hover {
+      transform: perspective(1000px) rotateY(0deg) rotateX(0deg) scale(1.02);
+    }
+
+    .hero-image-wrapper img {
+      border-radius: var(--radius-md);
+      display: block;
+      width: 100%;
+      height: 360px;
+      object-fit: cover;
+      filter: contrast(1.1) brightness(0.9);
+      transition: filter 0.5s ease;
+    }
+
+    .hero-image-wrapper:hover img {
+      filter: contrast(1) brightness(1.1);
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-val {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Global Mesh Background -->
+  <div class="bg-mesh">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+  </div>
+
+  <main>
+    <section class="hero-section">
+      <div class="container grid grid-cols-2 gap-8 items-center hero-content">
+        <div class="animate-fade-up">
+          <h1 class="h1 mb-6" id="heroTitle">Explore the <br> <span class="text-gradient">Untamed Beauty</span> <br> of
+            Bangladesh</h1>
+          <p class="text-muted mb-6" id="heroSubtitle" style="font-size: 1rem; max-width: 90%; line-height: 1.6;">
+            Whether you want a custom-tailored journey, a trusted local guide, or a quick pre-built package, we make
+            sure your trip is completely hassle-free and unforgettable.
+          </p>
+          <div class="flex gap-4 mb-6" id="heroButtons">
+            <a href="custom-tour.html" class="btn btn-primary">Plan Custom Trip</a>
+            <a href="guided-tour.html" class="btn btn-secondary glass">Find a Guide</a>
+          </div>
+
+          <div class="flex gap-8" style="border-top: 1px solid var(--border); padding-top: 28px; max-width: 100%; flex-wrap: wrap;">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div style="flex-shrink:0; background: rgba(0, 230, 118, 0.1); color: var(--primary); padding: 12px; border-radius: 50%;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              </div>
+              <div>
+                <div style="font-size: 1.3rem; font-weight: 800; line-height: 1; color: var(--text-main); font-family: 'Outfit', sans-serif;">50+</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px;">Destinations</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div style="flex-shrink:0; background: rgba(0, 176, 255, 0.1); color: #00b0ff; padding: 12px; border-radius: 50%;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              </div>
+              <div>
+                <div style="font-size: 1.3rem; font-weight: 800; line-height: 1; color: var(--text-main); font-family: 'Outfit', sans-serif;">10k+</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px;">Happy Travelers</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div style="flex-shrink:0; background: rgba(255, 193, 7, 0.1); color: #ffc107; padding: 12px; border-radius: 50%;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </div>
+              <div>
+                <div style="font-size: 1.3rem; font-weight: 800; line-height: 1; color: var(--text-main); font-family: 'Outfit', sans-serif;">4.9</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px;">Average Rating</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="animate-fade-up delay-200" style="position: relative;">
+          <div class="hero-image-wrapper">
+            <img src="pic/bandarban.jpg" alt="Hero Bandarban" loading="eager">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Top Destinations Strip -->
+    <section class="py-12" style="position: relative; z-index: 10;">
+      <div class="container mb-8 flex items-center justify-between animate-fade-up delay-300">
+        <div>
+          <span class="text-primary font-bold tracking-widest text-sm uppercase mb-2 block"
+            style="font-family:'Inter', sans-serif; font-weight: 700; letter-spacing: 2px;">Trending</span>
+          <h2 class="h2">Top Destinations</h2>
+        </div>
+        <a href="packages.html" class="btn btn-secondary glass"
+          style="padding: 10px 20px; font-size:0.9rem;">View All →</a>
+      </div>
+
+      <div style="position: relative;">
+        <!-- Left Arrow -->
+        <button id="destScrollLeft" class="btn glass" style="position: absolute; left: 24px; top: 50%; transform: translateY(-50%); z-index: 20; border-radius: 50%; width: 50px; height: 50px; padding: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); background: rgba(15,23,42,0.7); color: #fff; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.background='var(--primary)'; this.style.color='#0f172a'" onmouseout="this.style.background='rgba(15,23,42,0.7)'; this.style.color='#fff'">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+
+        <div class="strip-container animate-fade-up delay-400" id="topDestinationsStrip" style="scroll-behavior: smooth;">
+          <!-- Injected via JS -->
+          <p class="text-muted p-4">Loading destinations...</p>
+        </div>
+
+        <!-- Right Arrow -->
+        <button id="destScrollRight" class="btn glass" style="position: absolute; right: 24px; top: 50%; transform: translateY(-50%); z-index: 20; border-radius: 50%; width: 50px; height: 50px; padding: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 16px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); background: rgba(15,23,42,0.7); color: #fff; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.background='var(--primary)'; this.style.color='#0f172a'" onmouseout="this.style.background='rgba(15,23,42,0.7)'; this.style.color='#fff'">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- Why Choose Us / CTA Banner -->
+    <section class="py-12" style="position: relative; z-index: 10;">
+      <div class="container">
+        <div id="ctaContainer" class="glass p-8"
+          style="background: linear-gradient(135deg, rgba(20,27,45,0.8), rgba(0,230,118,0.1)); border-radius: var(--radius-lg); text-align: center; max-width: 800px; margin: 0 auto;">
+          <h2 class="h2 mb-4">Ready to start your next adventure?</h2>
+          <p class="text-muted mb-8" style="font-size: 1.1rem;">Join thousands of travelers who have experienced the
+            magic of seamless trip planning with Cholo Jaai.</p>
+          <a href="register.html" class="btn btn-primary">Create Free Account</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="common.js?v=2.1"></script>
+  <script>
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+      const nav = document.querySelector('.navbar');
+      if (nav) {
+        if (window.scrollY > 50) nav.classList.add('scrolled');
+        else nav.classList.remove('scrolled');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const userStr = localStorage.getItem('CJ_USER');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        const ctaContainer = document.getElementById('ctaContainer');
+        if(ctaContainer) {
+          ctaContainer.innerHTML = `
+            <h2 class="h2 mb-4">Welcome back, ${user.name ? user.name.split(' ')[0] : 'Explorer'}!</h2>
+            <p class="text-muted mb-8" style="font-size: 1.1rem;">Your next unforgettable journey awaits. Discover our newly curated packages or head over to your dashboard to manage your trips.</p>
+            <div class="flex justify-center gap-4 flex-wrap">
+              <a href="packages.html" class="btn btn-primary" style="font-size: 1.1rem; padding: 14px 32px;">Explore Packages</a>
+              <a href="dashboard.html" class="btn btn-secondary glass" style="font-size: 1.1rem; padding: 14px 32px;">My Dashboard</a>
+            </div>
+          `;
+        }
+      }
+
+      // Fetch dynamic packages
+      try {
+        const res = await APP.API.fetch('/api/data/packages');
+        let packagesData = res.success && res.data.length > 0 ? res.data : [
+          { location: "sajek", title: "Sajek Valley", image: "pic/sajek.jpg" },
+          { location: "bandarban", title: "Bandarban", image: "pic/bandarban.jpg" },
+          { location: "sundarbans", title: "Sundarbans", image: "pic/sundarbans.jpg" },
+          { location: "saint-martin", title: "Saint Martin", image: "pic/saint-martin.jpg" }
+        ];
+
+        const strip = document.getElementById('topDestinationsStrip');
+        if (strip) {
+          strip.innerHTML = '';
+          packagesData.forEach(pkg => {
+            const slug = pkg.location.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            const a = document.createElement('a');
+            a.href = `destination.html?slug=${slug}`;
+            a.className = 'strip-card';
+            let shortTitle = pkg.location.split(',')[0].replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            a.innerHTML = `
+              <img loading="lazy" src="${pkg.image}" alt="${shortTitle}">
+              <span class="tag">${shortTitle}</span>
+            `;
+            strip.appendChild(a);
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch packages:', err);
+      }
+    });
+
+    // Arrow Button Controls
+    document.getElementById('destScrollRight')?.addEventListener('click', () => {
+      document.getElementById('topDestinationsStrip').scrollBy({ left: 400, behavior: 'smooth' });
+    });
+    document.getElementById('destScrollLeft')?.addEventListener('click', () => {
+      document.getElementById('topDestinationsStrip').scrollBy({ left: -400, behavior: 'smooth' });
+    });
+
+    // Drag to scroll
+    const slider = document.querySelector('.strip-container');
+    let isDown = false; let startX; let scrollLeft; let isDragging = false;
+    if (slider) {
+      slider.addEventListener('mousedown', (e) => {
+        isDown = true; isDragging = false; slider.style.cursor = 'grabbing';
+        startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft;
+      });
+      slider.addEventListener('mouseleave', () => { isDown = false; slider.style.cursor = 'grab'; });
+      slider.addEventListener('mouseup', () => { isDown = false; slider.style.cursor = 'grab'; });
+      slider.addEventListener('mousemove', (e) => {
+        if (!isDown) return; e.preventDefault(); isDragging = true;
+        const x = e.pageX - slider.offsetLeft; const walk = (x - startX) * 2;
+        slider.scrollLeft = scrollLeft - walk;
+      });
+      document.addEventListener('click', (e) => { if (isDragging && e.target.closest('.strip-card')) e.preventDefault(); }, true);
+    }
+  </script>
+</body>
+</html>

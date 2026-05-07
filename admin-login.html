@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal | Cholo Jaai</title>
+  <link rel="stylesheet" href="index.css?v=2.0">
+  <style>
+    .auth-container {
+      max-width: 450px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+
+<body class="animate-fade-up">
+  <!-- Global Mesh Background -->
+  <div class="bg-mesh">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+  </div>
+
+  <main class="container" style="padding-top: 150px; padding-bottom: 60px;">
+    <div class="auth-container card p-6" style="border-top: 4px solid var(--primary);">
+      <h2 class="h3 mb-2">Admin Portal</h2>
+      <p class="text-muted mb-8">Authorized personnel only.</p>
+
+      <form id="adminSigninForm" novalidate>
+        <div class="mb-4">
+          <label>Admin Email</label>
+          <input type="email" class="input-box" name="email" id="adminEmail" required>
+        </div>
+        <div class="mb-6">
+          <label>Password</label>
+          <input type="password" class="input-box" name="password" id="adminPassword" required>
+        </div>
+        <button class="btn btn-primary w-full" type="submit">Access Dashboard</button>
+      </form>
+      
+      <div class="text-center mt-6">
+        <a href="index.html" class="text-muted" style="font-size: 0.9rem; text-decoration: none;">&larr; Return to Main Site</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="common.js?v=2.0"></script>
+  <script>
+    document.getElementById('adminSigninForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('adminEmail').value;
+      const password = document.getElementById('adminPassword').value;
+
+      if (!email || !password) {
+        alert("Please enter both email and password.");
+        return;
+      }
+
+      try {
+        const res = await APP.API.login(email, password);
+
+        if (res.success) {
+          // Check if the user is an Admin, Moderator, or Support Agent
+          const adminRoles = ['Master Admin', 'Moderator', 'Support Agent'];
+          if (adminRoles.includes(res.data.type)) {
+            // Save admin session securely in localStorage
+            localStorage.setItem('CJ_ADMIN', JSON.stringify(res.data));
+            // Also store general user so dashboard works properly if it depends on it
+            localStorage.setItem('CJ_USER', JSON.stringify(res.data)); 
+            
+            // Redirect to admin dashboard
+            location.href = 'admin.html';
+          } else {
+            alert('Access Denied. You are not an administrator.');
+          }
+        } else {
+          alert(res.message);
+        }
+      } catch (error) {
+        console.error(error);
+        alert(error.message || 'Login failed due to a network error. Please ensure the server is running.');
+      }
+    });
+  </script>
+</body>
+
+</html>
